@@ -1,5 +1,6 @@
 # Environment files
 env.sh
+app.env
 .env
 .env.local
 .env.production
