@@ -1,7 +1,7 @@
 
 postgres:
 	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=$${POSTGRES_USER} -e POSTGRES_PASSWORD=$${POSTGRES_PASSWORD} -d postgres
- 
+
 createdb:
 	docker exec -it postgres createdb --username=$${POSTGRES_USER} --owner=$${POSTGRES_USER} $${POSTGRES_DB}
 
