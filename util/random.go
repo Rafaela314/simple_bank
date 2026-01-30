@@ -34,7 +34,7 @@ func RandomString(n int) string {
 }
 
 // RandomOwnerName generates a random owner name
-func RandOwner() string {
+func RandomOwner() string {
 	return RandomString(6)
 }
 
@@ -44,7 +44,7 @@ func RandomMoney() int64 {
 }
 
 // RandomCurrency generates a random currenct code
-func RandomCurency() string {
+func RandomCurrency() string {
 	currencies := []string{"EUR", "USD", "CAD"}
 	n := len(currencies)
 	return currencies[rand.Intn(n)]
