@@ -8,8 +8,10 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"simple_bank/util"
+
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/simple_bank/util"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +19,7 @@ var testQueries *Queries
 var testDB *pgxpool.Pool
 
 func TestMain(m *testing.M) {
-	config, err := util.LoadConfig("../../simple_bank")
+	config, err := util.LoadConfig("../../")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
