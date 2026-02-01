@@ -19,17 +19,19 @@ var testQueries *Queries
 var testDB *pgxpool.Pool
 
 func TestMain(m *testing.M) {
+
+	var err error
+
 	config, err := util.LoadConfig("../../")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
-	conn, err := pgxpool.New(context.Background(), config.DBSource)
+	testDB, err = pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
 
-	testDB = conn
-	testQueries = New(conn)
+	testQueries = New(testDB)
 
 	exitCode := m.Run()
 
