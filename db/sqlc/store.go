@@ -86,13 +86,10 @@ func (store *Store) TransferTx(ctx context.Context, arg transferTxParams) (trans
 		}
 
 		if arg.FromAccountID < arg.ToAccountID {
-
-			result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
-
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
 		} else {
-
-			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
-
+			// Lock/update in same order: lower ID first (ToAccountID, then FromAccountID).
+			result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
 		}
 		return nil
 
