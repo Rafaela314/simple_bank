@@ -11,8 +11,15 @@ dropdb:
 migrateup:	
 	migrate -path db/migration -database "$${DB_SOURCE}" -verbose up
 
+migrateup1:
+	migrate -path db/migration -database "$${DB_SOURCE}" -verbose up 1
+
 migratedown:
 	migrate -path db/migration -database "$${DB_SOURCE}" -verbose down
+
+# Roll back only the last N migrations (e.g. make migratedown1 to undo only users migration)
+migratedown1:
+	migrate -path db/migration -database "$${DB_SOURCE}" -verbose down 1
 sqlc:
 	sqlc generate
 
@@ -22,4 +29,4 @@ test:
 server:
 	go run main.go	
 
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server
+.PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server
