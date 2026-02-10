@@ -35,9 +35,8 @@ func TestCreateAccount(t *testing.T) {
 // TestGetAccount tests the retrieval of an account.
 func TestGetAccount(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		user := createRandomUser(t)
-		owner := user.Username
-		created := createAccountInTxWithOwnerAndCurrency(t, q, owner, util.RandomCurrency())
+		owner := createRandomUser(t).Username
+		created := createAccountInTx(t, q, owner, util.RandomCurrency())
 
 		got, err := q.GetAccount(context.Background(), created.ID)
 		require.NoError(t, err)
@@ -58,9 +57,8 @@ func TestGetAccount(t *testing.T) {
 // TestGetAccountForUpdate tests the retrieval of an account for update.
 func TestGetAccountForUpdate(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		user := createRandomUser(t)
-		owner := user.Username
-		created := createAccountInTxWithOwnerAndCurrency(t, q, owner, util.RandomCurrency())
+		owner := createRandomUser(t).Username
+		created := createAccountInTx(t, q, owner, util.RandomCurrency())
 
 		got, err := q.GetAccountForUpdate(context.Background(), created.ID)
 		require.NoError(t, err)
@@ -75,13 +73,12 @@ func TestGetAccountForUpdate(t *testing.T) {
 // TestListAccounts tests the listing of accounts.
 func TestListAccounts(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		user := createRandomUser(t)
-		owner := user.Username
+		owner := createRandomUser(t).Username
 		currencies := []string{util.USD, util.EUR, util.CAD}
 		n := 3
 		var created []Account
 		for i := 0; i < n; i++ {
-			acc := createAccountInTxWithOwnerAndCurrency(t, q, owner, currencies[i])
+			acc := createAccountInTx(t, q, owner, currencies[i])
 			created = append(created, acc)
 		}
 
@@ -112,9 +109,8 @@ func TestListAccounts(t *testing.T) {
 // TestUpdateAccount tests the update of an account balance.
 func TestUpdateAccount(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		user := createRandomUser(t)
-		owner := user.Username
-		created := createAccountInTxWithOwnerAndCurrency(t, q, owner, util.RandomCurrency())
+		owner := createRandomUser(t).Username
+		created := createAccountInTx(t, q, owner, util.RandomCurrency())
 		newBalance := util.RandomMoney()
 
 		updated, err := q.UpdateAccount(context.Background(), UpdateAccountParams{
@@ -137,9 +133,8 @@ func TestUpdateAccount(t *testing.T) {
 func TestAddAccountBalance(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
 		currency := util.RandomCurrency()
-		user := createRandomUser(t)
-		owner := user.Username
-		created := createAccountInTxWithOwnerAndCurrency(t, q, owner, currency)
+		owner := createRandomUser(t).Username
+		created := createAccountInTx(t, q, owner, currency)
 		amount := int64(50)
 
 		updated, err := q.AddAccountBalance(context.Background(), AddAccountBalanceParams{
@@ -157,9 +152,8 @@ func TestAddAccountBalance(t *testing.T) {
 
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
 		currency := util.RandomCurrency()
-		user := createRandomUser(t)
-		owner := user.Username
-		created := createAccountInTxWithOwnerAndCurrency(t, q, owner, currency)
+		owner := createRandomUser(t).Username
+		created := createAccountInTx(t, q, owner, currency)
 		withdraw := int64(-30)
 
 		updated, err := q.AddAccountBalance(context.Background(), AddAccountBalanceParams{
@@ -174,9 +168,8 @@ func TestAddAccountBalance(t *testing.T) {
 // TestDeleteAccount tests the deletion of an account.
 func TestDeleteAccount(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		user := createRandomUser(t)
-		owner := user.Username
-		created := createAccountInTxWithOwnerAndCurrency(t, q, owner, util.RandomCurrency())
+		owner := createRandomUser(t).Username
+		created := createAccountInTx(t, q, owner, util.RandomCurrency())
 
 		err := q.DeleteAccount(context.Background(), created.ID)
 		require.NoError(t, err)
@@ -186,13 +179,8 @@ func TestDeleteAccount(t *testing.T) {
 	})
 }
 
-// createAccountInTx creates a random account using the given Queries (e.g. transaction-scoped).
-func createAccountInTx(t *testing.T, q *Queries) Account {
-	return createAccountInTxWithOwnerAndCurrency(t, q, util.RandomOwner(), util.RandomCurrency())
-}
-
-// createAccountInTxWithOwnerAndCurrency creates a random account with the given owner and currency using the given Queries (e.g. transaction-scoped).
-func createAccountInTxWithOwnerAndCurrency(t *testing.T, q *Queries, owner string, currency string) Account {
+// createAccountInTx creates a random account with the given owner and currency using the given Queries (e.g. transaction-scoped).
+func createAccountInTx(t *testing.T, q *Queries, owner string, currency string) Account {
 	arg := CreateAccountParams{
 		Owner:    owner,
 		Balance:  util.RandomMoney(),

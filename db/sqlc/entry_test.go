@@ -9,22 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestCreateEntry tests the creation of an entry.
 func TestCreateEntry(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		account := createAccountInTx(t, q)
-		arg := CreateEntryParams{
-			AccountID: account.ID,
-			Amount:    util.RandomMoney(),
-		}
-
-		entry, err := q.CreateEntry(context.Background(), arg)
-		require.NoError(t, err)
-		require.NotEmpty(t, entry)
-
-		require.Equal(t, arg.AccountID, entry.AccountID)
-		require.Equal(t, arg.Amount, entry.Amount)
-		require.NotZero(t, entry.ID)
-		require.NotZero(t, entry.CreatedAt)
+		currency := util.RandomCurrency()
+		owner := createRandomUser(t).Username
+		account := createAccountInTx(t, q, owner, currency)
+		createEntryInTxForAccount(t, q, account.ID)
 	})
 }
 
@@ -49,7 +40,9 @@ func TestGetEntry(t *testing.T) {
 
 func TestListEntries(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		account := createAccountInTx(t, q)
+		currency := util.RandomCurrency()
+		owner := createRandomUser(t).Username
+		account := createAccountInTx(t, q, owner, currency)
 		n := 5
 		var created []Entry
 		for i := 0; i < n; i++ {
@@ -71,7 +64,9 @@ func TestListEntries(t *testing.T) {
 	})
 
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		account := createAccountInTx(t, q)
+		currency := util.RandomCurrency()
+		owner := createRandomUser(t).Username
+		account := createAccountInTx(t, q, owner, currency)
 
 		listed, err := q.ListEntries(context.Background(), ListEntriesParams{
 			AccountID: account.ID,
@@ -83,7 +78,9 @@ func TestListEntries(t *testing.T) {
 	})
 
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		account := createAccountInTx(t, q)
+		currency := util.RandomCurrency()
+		owner := createRandomUser(t).Username
+		account := createAccountInTx(t, q, owner, currency)
 		for i := 0; i < 5; i++ {
 			createEntryInTxForAccount(t, q, account.ID)
 		}
@@ -98,11 +95,15 @@ func TestListEntries(t *testing.T) {
 	})
 }
 
+// createEntryInTx creates an entry with a random account.
 func createEntryInTx(t *testing.T, q *Queries) Entry {
-	account := createAccountInTx(t, q)
+	currency := util.RandomCurrency()
+	owner := createRandomUser(t).Username
+	account := createAccountInTx(t, q, owner, currency)
 	return createEntryInTxForAccount(t, q, account.ID)
 }
 
+// createEntryInTxForAccount creates an entry for a given account.
 func createEntryInTxForAccount(t *testing.T, q *Queries, accountID int64) Entry {
 	arg := CreateEntryParams{
 		AccountID: accountID,

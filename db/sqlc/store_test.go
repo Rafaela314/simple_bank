@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"simple_bank/util"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,8 +11,12 @@ import (
 func TestTransferTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	account1 := createRandomAccount(t)
-	account2 := createRandomAccount(t)
+	user1 := createRandomUser(t)
+	user2 := createRandomUser(t)
+	currency := util.RandomCurrency()
+
+	account1 := createRandomAccount(t, user1.Username, currency)
+	account2 := createRandomAccount(t, user2.Username, currency)
 
 	// run n concurrent transfer transactions
 	n := 10
@@ -94,9 +99,12 @@ func TestTransferTx(t *testing.T) {
 
 func TestTransferTxDeadlock(t *testing.T) {
 	store := NewStore(testDB)
+	user1 := createRandomUser(t)
+	user2 := createRandomUser(t)
+	currency := util.RandomCurrency()
 
-	account1 := createRandomAccount(t)
-	account2 := createRandomAccount(t)
+	account1 := createRandomAccount(t, user1.Username, currency)
+	account2 := createRandomAccount(t, user2.Username, currency)
 
 	// run n concurrent transfer transactions
 	n := 10

@@ -64,8 +64,10 @@ func runTestWithTransaction(t *testing.T, testFunc func(*testing.T, *Queries)) {
 
 // createTestData creates sample data for testing
 func createTestData(t *testing.T) (Account, Entry, Transfer) {
+	user := createRandomUser(t)
+	currency := util.RandomCurrency()
 
-	account := createRandomAccount(t)
+	account := createRandomAccount(t, user.Username, currency)
 
 	entry := createRandomEntryWithAccount(t, account)
 
@@ -75,11 +77,11 @@ func createTestData(t *testing.T) (Account, Entry, Transfer) {
 }
 
 // createRandomAccount creates a random account for testing
-func createRandomAccount(t *testing.T) Account {
+func createRandomAccount(t *testing.T, owner string, currency string) Account {
 	arg := CreateAccountParams{
-		Owner:    util.RandomOwner(),
+		Owner:    owner,
 		Balance:  util.RandomMoney(),
-		Currency: util.RandomCurrency(),
+		Currency: currency,
 	}
 	account, err := testQueries.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)

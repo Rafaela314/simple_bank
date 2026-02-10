@@ -12,8 +12,11 @@ import (
 // TestCreateTransfer tests the creation of a transfer.
 func TestCreateTransfer(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		fromAccount := createAccountInTx(t, q)
-		toAccount := createAccountInTx(t, q)
+		currency := util.RandomCurrency()
+		owner1 := createRandomUser(t).Username
+		owner2 := createRandomUser(t).Username
+		fromAccount := createAccountInTx(t, q, owner1, currency)
+		toAccount := createAccountInTx(t, q, owner2, currency)
 		arg := CreateTransferParams{
 			FromAccountID: fromAccount.ID,
 			ToAccountID:   toAccount.ID,
@@ -32,6 +35,7 @@ func TestCreateTransfer(t *testing.T) {
 	})
 }
 
+// TestGetTransfer tests the retrieval of a transfer.
 func TestGetTransfer(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
 		created := createTransferInTx(t, q)
@@ -52,10 +56,14 @@ func TestGetTransfer(t *testing.T) {
 	})
 }
 
+// TestListTransfers tests the listing of transfers.
 func TestListTransfers(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		fromAccount := createAccountInTx(t, q)
-		toAccount := createAccountInTx(t, q)
+		currency := util.RandomCurrency()
+		owner1 := createRandomUser(t).Username
+		owner2 := createRandomUser(t).Username
+		fromAccount := createAccountInTx(t, q, owner1, currency)
+		toAccount := createAccountInTx(t, q, owner2, currency)
 		n := 5
 		var created []Transfer
 		for i := 0; i < n; i++ {
@@ -78,8 +86,11 @@ func TestListTransfers(t *testing.T) {
 	})
 
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
-		fromAccount := createAccountInTx(t, q)
-		toAccount := createAccountInTx(t, q)
+		currency := util.RandomCurrency()
+		owner1 := createRandomUser(t).Username
+		owner2 := createRandomUser(t).Username
+		fromAccount := createAccountInTx(t, q, owner1, currency)
+		toAccount := createAccountInTx(t, q, owner2, currency)
 
 		listed, err := q.Listtransfers(context.Background(), ListtransfersParams{
 			FromAccountID: fromAccount.ID,
@@ -92,6 +103,7 @@ func TestListTransfers(t *testing.T) {
 	})
 }
 
+// TestUpdateTransfer tests the update of a transfer.
 func TestUpdateTransfer(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
 		created := createTransferInTx(t, q)
@@ -115,6 +127,7 @@ func TestUpdateTransfer(t *testing.T) {
 	})
 }
 
+// TestDeleteTransfer tests the deletion of a transfer.
 func TestDeletetransfers(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
 		created := createTransferInTx(t, q)
@@ -127,17 +140,19 @@ func TestDeletetransfers(t *testing.T) {
 	})
 }
 
+// createTransferInTx creates a transfer with random accounts.
 func createTransferInTx(t *testing.T, q *Queries) Transfer {
 	user1 := createRandomUser(t)
 	owner1 := user1.Username
 	user2 := createRandomUser(t)
 	owner2 := user2.Username
 	currency := util.RandomCurrency()
-	fromAccount := createAccountInTxWithOwnerAndCurrency(t, q, owner1, util.RandomCurrency())
-	toAccount := createAccountInTxWithOwnerAndCurrency(t, q, owner2, currency)
+	fromAccount := createAccountInTx(t, q, owner1, util.RandomCurrency())
+	toAccount := createAccountInTx(t, q, owner2, currency)
 	return createTransferInTxBetween(t, q, fromAccount.ID, toAccount.ID)
 }
 
+// createTransferInTxBetween creates a transfer between two given accounts.
 func createTransferInTxBetween(t *testing.T, q *Queries, fromAccountID, toAccountID int64) Transfer {
 	arg := CreateTransferParams{
 		FromAccountID: fromAccountID,
