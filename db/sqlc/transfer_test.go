@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestCreateTransfer tests the creation of a transfer.
 func TestCreateTransfer(t *testing.T) {
 	runTestWithTransaction(t, func(t *testing.T, q *Queries) {
 		fromAccount := createAccountInTx(t, q)
@@ -127,8 +128,13 @@ func TestDeletetransfers(t *testing.T) {
 }
 
 func createTransferInTx(t *testing.T, q *Queries) Transfer {
-	fromAccount := createAccountInTx(t, q)
-	toAccount := createAccountInTx(t, q)
+	user1 := createRandomUser(t)
+	owner1 := user1.Username
+	user2 := createRandomUser(t)
+	owner2 := user2.Username
+	currency := util.RandomCurrency()
+	fromAccount := createAccountInTxWithOwnerAndCurrency(t, q, owner1, util.RandomCurrency())
+	toAccount := createAccountInTxWithOwnerAndCurrency(t, q, owner2, currency)
 	return createTransferInTxBetween(t, q, fromAccount.ID, toAccount.ID)
 }
 
