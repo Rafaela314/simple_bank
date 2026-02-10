@@ -116,6 +116,3 @@ simple_bank/
 
 ---
 
-## License
-
-MIT (or your choice).

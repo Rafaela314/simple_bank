@@ -12,7 +12,7 @@ import (
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
 	Balance  int64  `json:"balance" binding:"min=0"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR"`
+	Currency string `json:"currency" binding:"required,currency"`
 }
 
 type getAccountRequest struct {
