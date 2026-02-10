@@ -20,6 +20,7 @@ func NewServer(store *db.Store) *Server {
 	server.router.POST("/accounts", server.createAccountHandler)
 	server.router.GET("/accounts/:id", server.getAccountHandler)
 	server.router.GET("/accounts", server.listAccountsHandler)
+	server.router.POST("/transfers", server.createTransferHandler)
 
 	return server
 }
