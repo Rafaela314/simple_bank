@@ -6,7 +6,7 @@ import (
 	"simple_bank/util"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type createUserRequest struct {
@@ -37,8 +37,8 @@ func (server *Server) createUserHandler(ctx *gin.Context) {
 
 	user, err := server.store.CreateUser(ctx.Request.Context(), arg)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			switch pgErr.Code {
 			case "unique_violation":
 				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return

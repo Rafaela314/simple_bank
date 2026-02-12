@@ -6,6 +6,7 @@ import (
 	db "simple_bank/db/sqlc"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type createAccountRequest struct {
@@ -38,12 +39,15 @@ func (server *Server) createAccountHandler(ctx *gin.Context) {
 
 	account, err := server.store.CreateAccount(ctx.Request.Context(), arg)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "foreign_key_violation", "unique_violation":
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			switch pgErr.Code {
+			case "23503", "23505": // foreign_key_violation, unique_violation
 				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return
 			}
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 
 	ctx.JSON(http.StatusOK, account)
