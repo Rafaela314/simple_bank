@@ -22,34 +22,41 @@ A minimal REST API for a banking-style application built in Go. This project dem
 ### HTTP API
 
 - **Gin server** – REST endpoints with [Gin](https://github.com/gin-gonic/gin): create account (POST), get account by ID (GET), list accounts with pagination (GET with `page_id` / `page_size`).
-- **Validation** – Request validation via struct tags (`binding:"required"`, `oneof=USD EUR`, `min=0`, etc.) and `ShouldBindJSON` / `ShouldBindQuery`.
-- **Structured errors** – Central `errorResponse(err)` returning JSON `{"error": "..."}` and appropriate status codes (400, 500).
+- **Validation** – Request validation via struct tags and custom patterns (`binding:"required"`, `min=0`, etc.) and `ShouldBindJSON` / `ShouldBindQuery`.
+- **Structured errors** – Central `errorResponse(err)` returning JSON `{"error": "..."}` and appropriate status codes (400, 403, 404, 500).
+
+### Security
+
+- **Password hashing with Argon2id** – User passwords are hashed with [golang.org/x/crypto/argon2](https://pkg.go.dev/golang.org/x/crypto/argon2) using `argon2.IDKey`: random per-password salt, configurable time/memory/threads, and constant-time comparison in `CheckPassword`. Stored format is encoded salt and hash (e.g. base64) so verification works without a global salt.
 
 ### Testing
 
 - **Table-driven CRUD tests** – Tests for all generated operations: accounts (Create, Get, GetForUpdate, List, Update, AddBalance, Delete), entries (Create, Get, List), transfers (Create, Get, List, Update, Delete). Helpers like `createAccountInTx` and `runTestWithTransaction` keep tests isolated and rolled back.
 - **Concurrent transfer test** – `TestTransferTx` runs multiple transfers concurrently and asserts final balances. `TestTransferTxDeadlock` alternates direction (A→B, B→A) to stress-test lock ordering.
 - **Test setup** – `TestMain` loads config and creates a shared `testDB` pool; tests use it directly (e.g. for `Store`) or via `runTestWithTransaction` for per-test rollback.
+- **API tests with mocks** – HTTP handler tests (e.g. `TestGetAccountAPI`) use [gomock](https://github.com/golang/mock) and a generated **MockStore** so handlers are tested without a real DB. The mock is generated with **mockgen** from the `Store` interface (`make mock` → `db/mock/store.go`).
 
 ### Tooling & workflow
 
-- **Makefile** – Targets for Postgres (`postgres`, `createdb`, `dropdb`), migrations (`migrateup`, `migratedown`, `migratedown1`), sqlc (`sqlc`), tests (`test`), and running the server (`server`). Env vars (e.g. from `env.sh`) for DB URL and credentials.
+- **Makefile** – Targets for Postgres (`postgres`, `createdb`, `dropdb`), migrations (`migrateup`, `migratedown`, `migratedown1`), sqlc (`sqlc`), tests (`test`), server (`server`), and **mock** (regenerate `db/mock/store.go` with mockgen). Env vars (e.g. from `env.sh`) for DB URL and credentials.
 - **Config** – `util.LoadConfig(".")` reads `app.env` (or env) and fills `DB_DRIVER`, `DB_SOURCE`, `SERVER_ADDRESS` for main and tests.
 
 ---
 
 ## Tech stack
 
-| Area        | Choice                |
-| ----------- | --------------------- |
-| Language    | Go 1.23+              |
-| DB          | PostgreSQL            |
-| DB driver   | pgx v5 (pool)         |
-| SQL codegen | sqlc                  |
-| Migrations  | golang-migrate        |
-| HTTP        | Gin                   |
-| Config      | Viper                 |
-| Tests       | testing + testify     |
+| Area            | Choice                          |
+| --------------- | ------------------------------- |
+| Language        | Go 1.23+                        |
+| DB              | PostgreSQL                      |
+| DB driver       | pgx v5 (pool)                   |
+| SQL codegen     | sqlc                            |
+| Migrations      | golang-migrate                  |
+| HTTP            | Gin                             |
+| Config          | Viper                           |
+| Password hashing| Argon2id (golang.org/x/crypto/argon2) |
+| Mocks           | gomock + mockgen                |
+| Tests           | testing + testify               |
 
 ---
 
@@ -84,6 +91,13 @@ make test
 make migratedown1
 ```
 
+**Regenerate mocks (after changing the `Store` interface)**
+
+```bash
+make mock
+```
+Requires [mockgen](https://github.com/golang/mock) and updates `db/mock/store.go`.
+
 ---
 
 ## Project structure
@@ -92,14 +106,16 @@ make migratedown1
 simple_bank/
 ├── api/              # HTTP handlers and server setup
 │   ├── server.go     # Gin engine, routes, Start()
-│   └── account.go    # createAccount, getAccount, listAccounts
+│   ├── account.go    # createAccount, getAccount, listAccounts
+│   └── user.go       # createUser (password hashed with Argon2id)
 ├── db/
 │   ├── migration/    # Up/down SQL migrations
-│   ├── query/        # SQL queries for sqlc (account, entry, transfer)
-│   └── sqlc/        # Generated code + Store and TransferTx
-├── util/             # Config loading, random helpers for tests
+│   ├── query/        # SQL queries for sqlc (account, entry, transfer, user)
+│   ├── sqlc/         # Generated code + Store and TransferTx
+│   └── mock/         # Generated MockStore (mockgen), used in api tests
+├── util/             # Config, random helpers, password (HashPassword, CheckPassword)
 ├── main.go           # Load config, connect DB, create store & server
-├── Makefile          # postgres, migrate, sqlc, test, server
+├── Makefile          # postgres, migrate, sqlc, test, server, mock
 ├── sqlc.yaml         # sqlc config (pgx, emit_empty_slice, overrides)
 └── app.env / env.example
 ```
