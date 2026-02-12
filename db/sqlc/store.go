@@ -7,22 +7,26 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Store provides all database operations. It embeds Queries for single-operation queries
-// and holds the connection pool for transactions and other pool-level operations.
-type Store struct {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+// SQLStore provides all functions to execute SQL queries and transaction.
+type SQLStore struct {
 	*Queries
 	db *pgxpool.Pool
 }
 
 // NewStore creates a new Store that uses the given pgx connection pool for all DB operations.
-func NewStore(db *pgxpool.Pool) *Store {
-	return &Store{
+func NewStore(db *pgxpool.Pool) Store {
+	return &SQLStore{
 		Queries: New(db),
 		db:      db,
 	}
 }
 
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.Begin(ctx)
 	if err != nil {
 		return err
@@ -40,13 +44,15 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	return tx.Commit(ctx)
 }
 
-type transferTxParams struct {
+// TransferTxParams holds the arguments for a transfer between two accounts.
+type TransferTxParams struct {
 	FromAccountID int64 `json:"from_account_id"`
 	ToAccountID   int64 `json:"to_account_id"`
 	Amount        int64 `json:"amount"`
 }
 
-type transferTxResult struct {
+// TransferTxResult holds the result of a transfer transaction.
+type TransferTxResult struct {
 	Transfer    Transfer
 	FromAccount Account
 	ToAccount   Account
@@ -54,8 +60,8 @@ type transferTxResult struct {
 	ToEntry     Entry
 }
 
-func (store *Store) TransferTx(ctx context.Context, arg transferTxParams) (transferTxResult, error) {
-	var result transferTxResult
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
