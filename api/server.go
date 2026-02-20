@@ -1,7 +1,10 @@
 package api
 
 import (
+	"log"
 	db "simple_bank/db/sqlc"
+	"simple_bank/token"
+	"simple_bank/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -10,13 +13,23 @@ import (
 
 // Server serves HTTP requests for our banking service.
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
 // NewServer creates a new HTTP server and setup routing.
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		log.Fatal("cannot create token maker:", err)
+	}
+	server := &Server{
+		config:     config,
+		store:      store,
+		tokenMaker: tokenMaker,
+	}
 	server.router = gin.Default()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -29,7 +42,7 @@ func NewServer(store db.Store) *Server {
 	server.router.POST("/transfers", server.createTransferHandler)
 	server.router.POST("/users", server.createUserHandler)
 
-	return server
+	return server, nil
 }
 
 // Start runs the HTTP server on a specific address.
