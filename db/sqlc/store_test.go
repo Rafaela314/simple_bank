@@ -101,11 +101,13 @@ func TestTransferTx(t *testing.T) {
 // TestTransferTxDeadlock tests the transfer transaction with deadlock.
 func TestTransferTxDeadlock(t *testing.T) {
 	store := NewStore(testDB)
+	user1 := createRandomUser(t)
+	user2 := createRandomUser(t)
 	currency := util.RandomCurrency()
-	owner1 := createRandomUser(t).Username
-	owner2 := createRandomUser(t).Username
-	account1 := createRandomAccount(t, owner1, currency)
-	account2 := createRandomAccount(t, owner2, currency)
+	account1 := createRandomAccount(t, user1.Username, currency)
+	account2 := createRandomAccount(t, user2.Username, currency)
+
+	account2.Currency = account1.Currency
 
 	n := 10
 	amount := int64(10)
