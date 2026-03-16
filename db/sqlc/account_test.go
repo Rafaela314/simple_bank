@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"simple_bank/util"
@@ -79,14 +80,21 @@ func TestListAccounts(t *testing.T) {
 		var created []Account
 		for i := 0; i < n; i++ {
 			acc := createAccountInTx(t, q, owner, currencies[i])
+			require.NotEmpty(t, acc)
 			created = append(created, acc)
 		}
+
+		owner2 := createRandomUser(t).Username
+
+		acc := createAccountInTx(t, q, owner2, currencies[1])
+		created = append(created, acc)
 
 		listed, err := q.ListAccounts(context.Background(), ListAccountsParams{
 			Owner:  owner,
 			Limit:  10,
 			Offset: 0,
 		})
+		fmt.Sprintf("listed %v ", listed)
 		require.NoError(t, err)
 		require.Len(t, listed, n)
 		for i, acc := range listed {
@@ -189,5 +197,25 @@ func createAccountInTx(t *testing.T, q *Queries, owner string, currency string) 
 	account, err := q.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
+	return account
+}
+
+func createRandomAccount(t *testing.T, username string, currency string) Account {
+
+	arg := CreateAccountParams{
+		Owner:    username,
+		Balance:  util.RandomMoney(),
+		Currency: currency,
+	}
+
+	account, err := testQueries.CreateAccount(context.Background(), arg)
+	require.NoError(t, err)
+	require.NotEmpty(t, account)
+
+	require.Equal(t, arg.Owner, account.Owner)
+	require.Equal(t, arg.Balance, account.Balance)
+	require.Equal(t, arg.Currency, account.Currency)
+	require.NotZero(t, account.ID)
+	require.NotZero(t, account.CreatedAt)
 	return account
 }
