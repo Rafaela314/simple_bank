@@ -24,6 +24,7 @@ var (
 
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
 		payload, err := extractBearerToken(ctx, tokenMaker)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
@@ -37,7 +38,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 // extractBearerToken parses the Authorization header and verifies the Bearer token.
 func extractBearerToken(ctx *gin.Context, tokenMaker token.Maker) (*token.Payload, error) {
 	authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
-	if authorizationHeader == "" {
+	if len(authorizationHeader) == 0 {
 		return nil, errMissingAuthHeader
 	}
 	fields := strings.Fields(authorizationHeader)
