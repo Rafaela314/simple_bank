@@ -44,8 +44,8 @@ jobs:
         sudo mv migrate /usr/bin/migrate
         which migrate
 
-    - name: Run migrations
-      run: make migrateup
+    - name: Run DB migrations
+      run: migrate -path db/migration -database "${{ secrets.DB_SOURCE }}" -verbose up
 
     - name: Test
       run: make test
