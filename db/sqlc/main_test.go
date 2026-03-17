@@ -22,11 +22,23 @@ func TestMain(m *testing.M) {
 
 	var err error
 
-	config, err := util.LoadConfig("../../")
-	if err != nil {
-		log.Fatal("cannot load config:", err)
+	dns := os.Getenv("DB_SOURCE")
+	if dns == "" {
+		user := os.Getenv("POSTGRES_USER")
+		password := os.Getenv("POSTGRES_PASSWORD")
+		db := os.Getenv("POSTGRES_DB")
+		host := os.Getenv("POSTGRES_HOST")
+		if host == "" {
+			host = "localhost"
+		}
+
+		if user == "" || password == "" || db == "" {
+			log.Fatal("cannot connect to database. database configuration is missing; set DB_SOURCE or POSTGRES_* env vars")
+		}
+		dns = "postgresql://" + user + ":" + password + "@" + host + ":5432/" + db + "?sslmode=disable"
 	}
-	testDB, err = pgxpool.New(context.Background(), config.DBSource)
+
+	testDB, err = pgxpool.New(context.Background(), dns)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}

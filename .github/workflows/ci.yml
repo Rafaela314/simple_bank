@@ -54,3 +54,6 @@ jobs:
     - name: Run DB migrations
       run: migrate -path db/migration -database "$DB_SOURCE" -verbose up
 
+    - name: Test
+      run: make test
+
