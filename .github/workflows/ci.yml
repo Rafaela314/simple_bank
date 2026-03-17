@@ -25,14 +25,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    env:
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      DB_DRIVER: postgres
-      DB_SOURCE: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}?sslmode=disable
-      SERVER_ADDRESS: 0.0.0.0:8080
-
     steps:
       
     - uses: actions/checkout@v5
@@ -41,14 +33,13 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
+
     - name: Install golang-migrate
       run: |
         curl -L https://github.com/golang-migrate/migrate/releases/download/v4.19.1/migrate.linux-amd64.tar.gz | tar xvz 
         sudo mv migrate /usr/bin/migrate
         which migrate
 
-    - name: Display Go version
-      run: go version
-    - name: Test with the Go CLI
+    - name: Test
       run: make test
       
