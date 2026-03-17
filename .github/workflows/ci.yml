@@ -1,6 +1,10 @@
 name: ci-test
 
-on: [push, pull_request]
+on: 
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
 
 jobs:
   test:
@@ -39,6 +43,9 @@ jobs:
         curl -L https://github.com/golang-migrate/migrate/releases/download/v4.19.1/migrate.linux-amd64.tar.gz | tar xvz 
         sudo mv migrate /usr/bin/migrate
         which migrate
+
+    - name: Run migrations
+      run: make migrateup
 
     - name: Test
       run: make test
