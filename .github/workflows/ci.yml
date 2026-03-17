@@ -29,8 +29,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    env:
-      DB_SOURCE: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?sslmode=disable
+
     steps:
       
     - uses: actions/checkout@v5
@@ -47,7 +46,7 @@ jobs:
         which migrate
 
     - name: Run DB migrations
-      run: migrate -path db/migration -database "postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?sslmode=disable" -verbose up
+      run: migrate -path db/migration -database "${{ secrets.DB_SOURCE }}" -verbose up
 
     - name: Test
       run: make test
