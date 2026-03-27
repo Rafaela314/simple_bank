@@ -9,7 +9,7 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /app/main /app/main
 COPY app.env .
-COPY db/migrations ./migrations
+COPY db/migration ./migration
 
 EXPOSE 8080
 CMD ["/app/main"]
