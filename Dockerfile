@@ -8,7 +8,7 @@ FROM alpine:3.23
 WORKDIR /app
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /app/main /app/main
-COPY app.env .
+
 COPY db/migration ./migration
 
 EXPOSE 8080
