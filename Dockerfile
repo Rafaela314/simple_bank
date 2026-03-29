@@ -6,10 +6,12 @@ RUN go build -o main main.go
 
 FROM alpine:3.23
 WORKDIR /app
-RUN apk add --no-cache ca-certificates
-COPY --from=builder /app/main /app/main
-
+COPY --from=builder /app/main .
+COPY app.env .
+COPY start.sh .
+COPY wait-for.sh .
 COPY db/migration ./migration
 
-EXPOSE 8080
-CMD ["/app/main"]
+EXPOSE 8080 9090
+CMD ["/app/main"] 
+ENTRYPOINT ["/app/start.sh"]
